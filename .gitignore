@@ -1,0 +1,6 @@
+# IntelliJ Crap
+/.idea
+
+# Gradle Crap
+/.gradle
+build

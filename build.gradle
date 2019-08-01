@@ -1,0 +1,127 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3'
+    }
+}
+
+ext.projectVersion = projectVersion
+
+if (System.getenv('BINTRAY_USER') == null) {
+    ext.projectVersion = ext.projectVersion + '-SNAPSHOT'
+}
+
+println "##teamcity[setParameter name='java.annotations.version' value='$projectVersion']"
+
+allprojects {
+    group 'uk.celtium'
+    version rootProject.ext.projectVersion
+}
+
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'maven-publish'
+    apply plugin: 'com.jfrog.bintray'
+
+    repositories {
+        mavenCentral()
+    }
+}
+
+project(':java5').archivesBaseName = 'annotations-java5'
+project(':java8').archivesBaseName = 'annotations'
+
+configure([project(':java5'), project(':java8')]) {
+    dependencies {
+        compile project(':common')
+    }
+
+    task mainJar(type: Jar) {
+        from sourceSets.main.output
+        from project(':common').sourceSets.main.output
+        manifest {
+            attributes('Automatic-Module-Name': 'uk.celtium.' + archivesBaseName)
+        }
+    }
+
+    task sourceJar(type: Jar) {
+        from sourceSets.main.java
+        from project(':common').sourceSets.main.java
+        baseName = archivesBaseName + '-sources'
+    }
+
+    javadoc {
+        source = [sourceSets.main.java, project(':common').sourceSets.main.java]
+    }
+
+    task javadocJar(type: Jar) {
+        from javadoc
+    }
+
+    artifacts {
+        archives mainJar, sourceJar
+    }
+
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                artifactId archivesBaseName
+                artifact mainJar
+                artifact sourceJar {
+                    classifier 'sources'
+                }
+                artifact javadocJar {
+                    classifier 'javadoc'
+                }
+                pom.withXml {
+                    asNode().children().last() + {
+                        resolveStrategy = DELEGATE_FIRST
+                        name 'Celtium Java Annotations'
+                        description 'A couple of annotations to be used for code documentation and Doge IDEs.'
+                        url 'https://github.com/celtiumgithub/java-annotations'
+                        scm {
+                            url 'https://github.com/celtiumgithub/java-annotations'
+                            connection 'scm:git:git://github.com/celtiumgithub/java-annotations.git'
+                            developerConnection 'scm:git:ssh://github.com:celtiumgithub/java-annotations.git'
+                        }
+                        licenses {
+                            license {
+                                name 'The Celtium Open License, Version 1.0'
+                                url 'https://celtium.uk/documents/licenses/col-1.0.txt'
+                                distribution 'repo'
+                            }
+                        }
+                        developers {
+                            developer {
+                                id 'Celtium'
+                                name 'The Celtium Development Team'
+                                organization 'Celtium'
+                                organizationUrl 'https://celtium.uk/'
+                            }
+                        }
+                    }
+                }
+
+            }
+        }
+    }
+    if (System.getenv('BINTRAY_USER') != null) {
+        bintray {
+            user = System.getenv('BINTRAY_USER')
+            key = System.getenv('BINTRAY_KEY')
+            publish = true
+            publications = ['mavenJava']
+            pkg {
+                userOrg = 'celtium'
+                repo = 'doge-redist'
+                name = 'uk.celtium:' + archivesBaseName
+                version {
+                    name = rootProject.ext.projectVersion
+                }
+            }
+        }
+    }
+
+}
