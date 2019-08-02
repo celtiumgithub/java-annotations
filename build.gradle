@@ -87,8 +87,8 @@ configure([project(':java5'), project(':java8')]) {
                         }
                         licenses {
                             license {
-                                name 'The Celtium Open License, Version 1.0'
-                                url 'https://celtium.uk/documents/licenses/col-1.0.txt'
+                                name 'The Apache Software License, Version 2.0'
+                                url 'https://www.apache.org/licenses/LICENSE-2.0.txt'
                                 distribution 'repo'
                             }
                         }
