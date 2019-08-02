@@ -115,7 +115,9 @@ configure([project(':java5'), project(':java8')]) {
             pkg {
                 userOrg = 'celtium'
                 repo = 'doge-redist'
-                name = 'uk.celtium:' + archivesBaseName
+                name = 'uk.celtium:annotations'
+                licenses = ['Apache-2.0']
+                vcsUrl = 'https://github.com/celtiumgithub/java-annotations.git'
                 version {
                     name = rootProject.ext.projectVersion
                 }
