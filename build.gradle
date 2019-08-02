@@ -49,7 +49,6 @@ configure([project(':java5'), project(':java8')]) {
     task sourceJar(type: Jar) {
         from sourceSets.main.java
         from project(':common').sourceSets.main.java
-        baseName = archivesBaseName + '-sources'
     }
 
     javadoc {
